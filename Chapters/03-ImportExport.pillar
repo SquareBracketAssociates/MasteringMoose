@@ -3,11 +3,12 @@
 The first step in the process of analysis is the generation of a model of a given target system or set of data. Moose can handle multiple types of data and data sources. This chapter provides a short guide for how to deal with these.
 
 !!! Importing and exporting with MSE
-The preferred way to load a model in Moose is via an MSE file. To load an MSE file, all you have to do is to press the ``Import from MSE'' button in the Moose Panel and indicate the file to load. This creates a model, populates it with the entities from the file and adds the model to the repository. Visually, the model appears in the list of models from the Moose Panel.
+The preferred way to load a model in Moose is via an MSE file. To load an MSE file, all you have to do is to press the Import from MSE button in the Moose Panel and indicate the file to load. This creates a model, populates it with the entities from the file and adds the model to the repository. Visually, the model appears in the list of models from the Moose Panel.
 
 But what exactly is MSE? MSE is the default file format supported by Moose. It is a generic file format and can describe any model. It is similar to XML, the main difference being that instead of using verbose tags, it makes use of parentheses to denote the beginning and ending of an element.
 
 The following snippet provides an example of a small model:
+
 [[[
 ( (FAMIX.Namespace (id: 1)
     (name 'aNamespace'))
@@ -43,9 +44,20 @@ The overall object graph can be seen graphically in Figure *@mse-graph*.
 
 +MSE example.>file://figures/mse-graph.png|width=65|label=mse-graph+
 
-A more complex MSE example is available for download as described in .
+A more complex MSE example is available for download as described in *https://hal.inria.fr/file/index/docid/646884/filename/Duca11c-Cutter-deliverable22-MSE-FAMIX30.pdf*.
 
-Once a model is loaded, it can be easily exported as an MSE file. This can be done via the contextual menu of the model. By choosing the ``Export to MSE'' menu item you will be prompted to indicate the desired file name and location, and the result is an MSE file saved on the disk containing the entities in the model.
+
+
+Once a model is loaded, it can be easily exported as an MSE file. This can be done via the contextual menu of the model. By choosing the Export to MSE menu item you will be prompted to indicate the desired file name and location, and the result is an MSE file saved on the disk containing the entities in the model.
+
+
+
+
+
+
+
+
+
 
 !!! Importing Pharo code
 Moose comes with a built-in importer for Pharo code. The prerequisite for using this importer is that you first need the target source code present in the Pharo image.
