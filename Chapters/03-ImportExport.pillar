@@ -53,3 +53,12 @@ Moose comes with a built-in importer for Pharo code. The prerequisite for using 
 Once the code is present, simply press on the ``Load from Pharo'' item from the menu of the Moose Panel, and follow the steps from the opening wizard.
 
 This importer works out of the box for code built for Pharo. For code written in other Smalltalk dialects, the code must first be made loadable into Pharo. Moose does not offer ready made solutions for these other languages, but for most known dialects, like VisualWorks, you can often find solutions for exporting the code in a file format loadable in Pharo. An important note is that the code does not have to be fully functioning. It merely needs to be loadable in the Pharo image.
+
+
+!!! Importing Java code
+Moose supports the analysis of Java systems by means of external parsers and MSE file for model interchange. The general process can be seen in the picture below.
+
+The first step is to use the external parser to process the Java sources. Afterwards, the external tool exports the model in MSE. And finally, this MSE file is imported in Moose.
+
+
+
