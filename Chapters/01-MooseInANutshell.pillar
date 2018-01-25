@@ -180,7 +180,7 @@ The inspector shows the XML with syntax highlighting. Let's say that we want to 
 XMLDOMParser parse: self contents
 ]]]
 
-+Inspecting an XML document.>file://figures/nutshell16-playground-files-3.png|width=60|label=nutshell16+
++Inspecting an XML document.>file://figures/nutshell16-playground-files-4.png|width=60|label=nutshell16+
 
 The tree is more appropriate for navigation, but still we are required to scroll. Instead, we should only care about the <property> tags. To this end, we can use an XPath query.
 
