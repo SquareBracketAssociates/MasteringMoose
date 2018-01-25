@@ -1,0 +1,10 @@
+!! Moose in a nutshell
+
+Moose (*http://moosetechnology.org*) is a platform for expressing analyses of software systems and of data in general. Its main goal is to assist and enable a human in the process of understanding large amounts of data. It addresses several categories of users:
+
+- researchers in the area of software analysis, mining and reverse engineering,
+- engineers and architects who want to understand systems and data, and
+- tool builders.
+
+This book covers Moose from various angles. It covers its externals, its internals, and the philosophy behind its design.
+
