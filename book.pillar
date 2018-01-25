@@ -5,3 +5,6 @@ ${inputFile:Chapters/01-MooseInANutshell.pillar}$
 ${inputFile:Chapters/02-MooseEngines.pillar}$
 
 ${inputFile:Chapters/03-ImportExport.pillar}$
+
+
+${inputFile:Chapters/A-MSE.pillar}$
