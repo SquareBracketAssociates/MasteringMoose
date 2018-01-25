@@ -1,0 +1,186 @@
+!! MSE: a compact, simple and robust format
+
+
+The MSE format allows one to specify models for import and export with Fame a simple meta meta model $cite:Kuhn08c$. 
+Similar to XML, MSE is generic and can specify any kind of data, regardless of the metamodel. In addition MSE is simple, compact, readable and extensible. 
+
+It is similar to XML, the main difference being that instead of using verbose tags, it makes use of parentheses to denote the beginning and ending of an element. MSE is based on the experience gained since 1996 in the development of the Moose software analysis platform $cite:Nier05c$. MSE has been used to save FAMIX models.
+
+
+!!!An Example
+
+The following snippet provides an example of a small model:
+
+An example MSE file might look as follows
+
+[[[
+  ("Sample MSE file"
+   (LIB.Library
+       (librarian
+           (LIB.Person
+               (name 'Adrian Kuhn')))
+       (books
+           (LIB.Book
+               (title 'Design Patterns')
+               (authors (ref: 1) (ref: 2) (ref: 3) (ref: 4)))
+           (LIB.Book
+               (title 'Eclipse: Principles, Patterns, and Plug-Ins')
+               (authors (ref: 1) (ref: 5)))
+           (LIB.Book
+               (title 'Smalltalk Best Practice Patterns')
+               (authors (ref: 5)))))
+   (LIB.Person (id: 1)
+       (name 'Erich Gamma'))
+   (LIB.Person (id: 2)
+       (name 'Richard Helm'))
+   (LIB.Person(id: 3)
+       (name 'Ralph Johnson'))
+   (LIB.Person(id: 4)
+       (name 'John Vlissides'))
+   (LIB.Person(id: 5)
+       (name 'Kent Beck')))
+]]]   
+
+
+
+The above MSE file describes a library with a librarian and 3 books by 5 authors. As you can see, it is either possible to nest elements (see the librarian) or the refer to them using the \ct{ref:} tag. 
+
+!!! For Meta models
+ In MSE we can also express the meta model of the model expressed above.
+The meta-model (or schema, if you prefer) of the file can be stored in the same format.
+
+[[[
+("Meta-model of above file"
+   (FM3.Package
+       (name 'LIB')
+       (classes
+           (FM3.Class
+               (name 'Library')
+               (attributes
+                   (FM3.Property
+                       (name 'librarian')
+                       (type (ref: 2)))
+                   (FM3.Property
+                       (name 'books')
+                       (multivalued true)
+                       (type (ref: 1)))))
+           (FM3.Class (id: 1)
+               (name 'Book')
+               (attributes
+                   (FM3.Property
+                       (name 'title')
+                       (type (ref: String)))
+                   (FM3.Property
+                       (name 'authors')
+                       (multivalued true)
+                       (type (ref: 2)))))
+           (FM3.Class (id: 2)
+               (name 'Person')
+               (attributes
+                   (FM3.Property
+                       (name 'name')
+                       (type (ref: String))))))))
+]]]
+
+
+!!!For Models of Code
+Here is an example of MSE used to exchange model of code.
+
+[[[
+( (FAMIX.Namespace (id: 1)
+        (name 'aNamespace'))
+  (FAMIX.Package (id: 201)
+        (name 'aPackage'))
+  (FAMIX.Package (id: 202)
+        (name 'anotherPackage')
+        (parentPackage (ref: 201)))
+  (FAMIX.Class (id: 2)
+        (name 'ClassA')
+        (container (ref: 1))
+        (parentPackage (ref: 201)))
+  (FAMIX.Method
+        (name 'methodA1')
+        (signature 'methodA1()')
+        (parentType (ref: 2))
+        (LOC 2))
+  (FAMIX.Attribute 
+        (name 'attributeA1')
+        (parentType (ref: 2)))
+  (FAMIX.Class (id: 3)
+        (name 'ClassB')
+        (container (ref: 1))
+        (parentPackage (ref: 202)))
+  (FAMIX.Inheritance
+        (subclass (ref: 3))
+        (superclass (ref: 2))))
+]]]
+
+
+The file defines 8 entities: 1 Namespace, 2 Packages, 2 Classes, 1 Method, 1 Attribute and 1 Inheritance. For each of these entities it provides a unique identifier (e.g., \ct{(id: 1)}) and it defines properties. In general, properties can be either primitive, like \ct{(name 'aNamespace')}, or they can point to another entity, like in the case of \ct{(container (ref: 1))} which denotes that the container property of ClassA points to the instance of Namespace named \ct{aNamespace}.
+
+The overall object graph can be seen graphically below (see Figure *@mse-graph2*).
+
++MSE example.>file://figures/mse-graph.png|width=65|label=mse-graph2+
+
+
+!!! MSE Specification
+
+MSE is a file format to store FAME compliant metamodels and models $cite:Kuhn08c$.
+Remark that all MSE files must use UTF-8 encoding.
+
+!!!! Grammar
+
+The following grammar expressed in EBNF cover all the syntax of the MSE format
+where
+
+- ==\?== : which means that the symbol (or group of symbols in parenthesis) to the left of the operator is optional (it can appear zero or one times).
+- ==\*== : which means that something can be repeated any number of times (and possibly be skipped altogether).
+- ==\+== : which means that something can appear one or more times.
+
+The following 
+[[[
+Root := Document ?
+Document := OPEN ElementNode * CLOSE
+ElementNode := OPEN ELEMENTNAME Serial ? AttributeNode * CLOSE
+Serial := OPEN ID INTEGER CLOSE
+AttributeNode := OPEN SIMPLENAME ValueNode * CLOSE
+ValueNode := Primitive | Reference | ElementNode
+Primitive := STRING | NUMBER | Boolean 
+Boolean := TRUE | FALSE
+Reference := IntegerReference | NameReference
+IntegerReference := OPEN REF INTEGER CLOSE
+NameReference := OPEN REF ELEMENTNAME CLOSE
+]]]
+
+[[[
+OPEN := "("
+CLOSE := ")"
+ID := "id:"
+REF := "ref:"
+TRUE := "true"
+FALSE := "false"
+ELEMENTNAME := letter ( letter | digit ) * ( "." letter ( letter | digit ) * ) 
+SIMPLENAME := letter ( letter | digit ) *
+INTEGER := digit +
+NUMBER := "-" ? digit + ( "." digit + ) ? ( ( "e" | "E" ) ( "-" | "+" ) ? digit + ) ?
+STRING := ( "'" [^'] * "'" ) +
+]]]
+
+
+[[[
+digit := [0-9] 
+letter := [a-zA-Z_]
+comment := """ [^"] * """
+]]]
+
+
+
+
+!!! Conclusion
+
+MSE represents our experience in exchanging source code models. Our experience with cumbersome CDIFs, 
+verbose XMI formats led us to design a simple, readable, compact, incremental and robust interexchange format.
+
+There is a missing part in MSE: the metadata about the extraction such as what is the system extracted, its date of extraction, the version and the tools used to extract it. Such information does not have to have a syntactic support per se and can be represented as special model entities. 
+
+
