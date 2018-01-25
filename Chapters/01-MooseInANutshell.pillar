@@ -25,7 +25,7 @@ We first need to build a model of our system, and for this we will use jdt2famix
 
 The result is that you will get an ArgoUML-0-34/ArgoUML-0-34.mse file with the serialized model that can be loaded in Moose. Make sure you have Moose 6.0 or later (from *http://moosetechnology.org*).
 
-Starting Moose you see the following window:
+Starting Moose you see the following window shown in Figure *@nutshell1*.
 
 +An empty Moose panel.>file://figures/nutshell1-moose-panel-1.png|width=60|label=nutshell1+
 
@@ -34,7 +34,7 @@ Click on the MSE button on the top right and load the ==ArgoUML-0-34.mse== file.
 
 An extra step is to point the model to the sources folder. To this end, right click on the ==ArgoUML-0-34== model, choose Utilities/Set root folder and point to the ==ArgoUML-0-34== folder.
 
-Now we are ready to query our system. Select ==All model classes==.
+Now we are ready to query our system. Select ==All model classes== you should get the situation depicted in Figure *@nutshell2*.
 
 +All model classes.>file://figures/nutshell2-moose-panel-2.png|width=60|label=nutshell2+
 
@@ -45,20 +45,21 @@ By default you see the list of classes. At this point we are only interested in 
 self select: [ :each | each isAnnotatedWith: 'Deprecated' ]
 ]]]
 
-Select the whole text and from the contextual menu choose Do it and go (Cmd+g). This results in a new pane that spawns to the right containing 25 classes.
+Select the whole text and from the contextual menu choose Do it and go (Cmd+g). This results in a new pane that spawns to the right containing 25 classes as shown in Figure *@nutshell3*.
 
 +Deprecated classes.>file://figures/nutshell3-moose-panel-3.png|width=60|label=nutshell3+
 
-Just to make sure that we indeed got deprecated classes, let's investigate one of them and select to view the source code.
+Just to make sure that we indeed got deprecated classes, let's investigate one of them and select to view the source code as shown in Figure *@nutshell4*.
 
 +One deprecated class with source code
 .>file://figures/nutshell4-moose-panel-4.png|width=60|label=nutshell4+
 
 !!!! Stepping back 
-Let's step back for a moment. We see 2 panes at the moment, but we have 4 panes in total in our browser. Each pane represents one object and offers multiple views on this object. Furthermore, each pane is also represented by a dot in the scroll bar from the bottom. Hovering over a dot spawns a preview of the pane. If we want to see more or less panes we can do so by dragging the margins of the bar.
+Let's step back for a moment. We see 2 panes at the moment, but we have 4 panes in total in our browser. Each pane represents one object and offers multiple views on this object. Furthermore, each pane is also represented by a dot in the scroll bar from the bottom. Hovering over a dot spawns a preview of the pane. If we want to see more or less panes we can do so by dragging the margins of the bar  as shown in Figure *@nutshell5*.
 
 +Browsing multiple panes.>file://figures/nutshell5-moose-panel-5.png|width=60|label=nutshell5+
 
+!!!! Unused classes 
 
 But, let's go back to our original problem. We now have the 25 classes that are deprecated in our system. Next, we need to check which of those are not used. Or if we think in terms of clients and providers, which of the deprecated classes do not have client classes. Open the playground corresponding to the pane with having 25 classes and execute the following expression:
 
@@ -66,11 +67,11 @@ But, let's go back to our original problem. We now have the 25 classes that are 
 self select: [ :each | each clientTypes isEmpty]
 ]]]
 
-We get 14 classes that can be removed immediately.
+We get 14 classes that can be removed immediately as shown in Figure *@nutshell6*.
 
 +Deprecated classes without clients.>file://figures/nutshell6-moose-panel-6.png|width=60|label=nutshell6+
 
-This leaves us with 11 classes that cannot be removed because they are still being used. So, what should we do about these?
+This leaves us with 11 classes that cannot be removed because they are still being used (Figure *@nutshell7*). So, what should we do about these?
 
 +Deprecated classes with clients.>file://figures/nutshell7-moose-panel-7.png|width=60|label=nutshell7+
 
@@ -89,14 +90,14 @@ view layout grid.
 view
 ]]]
 
-This shows us a simple visualization containing the 11 deprecated classes and their client types.
+This shows us a simple visualization containing the 11 deprecated classes and their client types (Figure *@nutshell8*).
 
 +Simple visualization of used deprecated classes and their clients.>file://figures/nutshell8-moose-panel-8.png|width=60|label=nutshell8+
 
 
 !!!! Improving the user experience
 
-What we get is an interactive picture, and clicking on a node reveals the details of the actual class to the right.
+What we get is an interactive picture, and clicking on a node reveals the details of the actual class to the right as shown in Figure *@nutshell9* and *@nutshell10*.
 
 +Obtaining details from the visualization.>file://figures/nutshell9-moose-panel-9.png|width=60|label=nutshell9+
 
@@ -129,6 +130,8 @@ view view pushBackEdges.
 view
 ]]]
 
+The previous script produces Figure *@nutshell11*.
+
 +Representing dependencies through edges.>file://figures/nutshell11-moose-panel-11.png|width=60|label=nutshell11+
 
 
@@ -149,11 +152,11 @@ view
 
 +Patterns of usages of deprecated classes.>file://figures/nutshell12-moose-panel-12.png|width=60|label=nutshell12+
 
-Ok. Now, we can distinguish several distinct situations. Two deprecated classes call each other and they can be simply removed. There is one non-deprecated class using two deprecated classes. And there are 3 deprecated classes that are being used by several other non-deprecated ones. This picture offers us the opportunity to choose our path by taking more details into account at the same time. For example, an interesting candidate to investigate is the one class that uses two deprecated ones.
+Ok. Now, we can distinguish several distinct situations as shown in Figure *@nutshell12*. Two deprecated classes call each other and they can be simply removed. There is one non-deprecated class using two deprecated classes. And there are 3 deprecated classes that are being used by several other non-deprecated ones. This picture offers us the opportunity to choose our path by taking more details into account at the same time. For example, an interesting candidate to investigate is the one class that uses two deprecated ones.
 
 !!! Navigating XML files
 
-Working with code is interesting but often the plain code does not provide the complete story. For example, ArgoUML happens to rely on some Ant XML files for building the system. Let's look at them. To this end, click on the background of Pharo and from the so called World menu choose Playground. If you are new to Pharo, the Playground is a little tool that allows you to evaluate scripts. We start with inspecting the object representing the root directory of our ArgoUML-0-34 model.
+Working with code is interesting but often the plain code does not provide the complete story. For example, ArgoUML happens to rely on some Ant XML files for building the system. Let's look at them. To this end, click on the background of Pharo and from the so called World menu choose Playground. If you are new to Pharo, the Playground is a little tool that allows you to evaluate scripts. We start with inspecting the object representing the root directory of our ArgoUML-0-34 model as shown in Figure *@nutshell13*.
 
 [[[
 MooseModel root allModels anyOne rootFolder asFileReference
@@ -163,18 +166,18 @@ MooseModel root allModels anyOne rootFolder asFileReference
 
 +Inspecting directories.>file://figures/nutshell13-playground-files-1.png|width=60|label=nutshell13+
 
-We want to find the Ant XML files. We could write a query, but let's first get a sense of what kind of files exist in the project. For this, we choose the Grouped files presentation of the src folder.
+We want to find the Ant XML files. We could write a query, but let's first get a sense of what kind of files exist in the project. For this, we choose the Grouped files presentation of the ==src== folder as shown in Figure *@nutshell14*.
 
 +Overview of files by extension.>file://figures/nutshell14-playground-files-2.png|width=60|label=nutshell14+
 
 
-We see that we get 614 XML files. We pick the first ==build.xml==.
+We see that we get 614 XML files. We pick the first ==build.xml== as shown in Figure *@nutshell15*
 
 
 +A build.xml.>file://figures/nutshell15-playground-files-3.png|width=60|label=nutshell15+
 
 
-The inspector shows the XML with syntax highlighting. Let's say that we want to understand the ==<property>== elements from this file. One possibility would be to scroll through the file, but that would mean that we treat XML as text. Another way is to take advantage of the structure of XML. We switch to the ==Raw== view and we parse the file.
+The inspector shows the XML with syntax highlighting. Let's say that we want to understand the ==<property>== elements from this file. One possibility would be to scroll through the file, but that would mean that we treat XML as text. Another way is to take advantage of the structure of XML. We switch to the ==Raw== view and we parse the file Figure *@nutshell16*.
 
 [[[
 XMLDOMParser parse: self contents
