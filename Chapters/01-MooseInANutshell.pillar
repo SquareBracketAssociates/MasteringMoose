@@ -227,4 +227,6 @@ Evaluating this code, extracts the wanted snippets. Now we can read.
 
 !!! Conclusion
 
+This small tutorial gave you a glimpse at the possibilities offered by Moose. What you should also consider is that Moose is a meta-tool: it is a platform to build advanced tools.
+Some of the topics will be extended in their own chapters. 
 
