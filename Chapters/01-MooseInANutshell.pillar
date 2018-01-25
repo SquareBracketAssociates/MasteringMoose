@@ -223,6 +223,8 @@ p parse: self contents.
 
 Evaluating this code, extracts the wanted snippets. Now we can read.
 
-+Extracting code snippets.>file://figures/nutshell17-playground-pillar-2|width=65|label=nutshell19+
++Extracting code snippets.>file://figures/nutshell19-playground-pillar-2.png|width=65|label=nutshell19+
+
+!!! Conclusion
 
 
