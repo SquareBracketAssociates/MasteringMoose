@@ -1,13 +1,13 @@
 {
     "package": {
-        "name": "booklet-smacc",
+        "name": "MasteringMoose",
         "repo": "wip",
         "subject": "squarebracketassociates",
         "desc": "Smacc",
         "licenses": ["MIT"],
-        "website_url": "https://github.com/SquareBracketAssociates/Booklet-Smacc",
-        "issue_tracker_url": "https://github.com/SquareBracketAssociates/Booklet-Smacc/issues",
-        "vcs_url": "https://github.com/SquareBracketAssociates/Booklet-Smacc.git",
+        "website_url": "https://github.com/SquareBracketAssociates/MasteringMoose",
+        "issue_tracker_url": "https://github.com/SquareBracketAssociates/MasteringMoose/issues",
+        "vcs_url": "https://github.com/SquareBracketAssociates/MasteringMoose.git",
         "labels": ["work-in-progress"]
     },
 
@@ -18,8 +18,8 @@
 
     "files": [
         {
-            "includePattern": "build/(smacc).spiral.pdf",
-            "uploadPattern": "$1-wip.pdf",
+            "includePattern": "build/book.spiral.pdf",
+            "uploadPattern": "MasteringMoose-wip.pdf",
             "matrixParams": { "override": 1 }
         }
     ],
