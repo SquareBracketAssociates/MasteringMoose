@@ -1,0 +1,176 @@
+!! Building browsers with Glamour
+
+Large models hold many details. Tons of details. The sheer size is precisely what makes it can be hard for us to grasp systems in one shot. Browsers offer an alternative. A browser is a specific user interface that allows us to look at the space provided by the model, to navigate from one part of this space to another, and to act upon it.
+
+For example, both the Inspector and the Moose Finder are browsers. They have a workflow that works well for many situations, but this workflow is still hardcoded and at times it is not flexible enough to accommodate custom needs. An alternative way is to use a custom browser. For example, when it comes to manipulating code, we could write code in the Inspector, but we typically prefer not to. We use a dedicated code browser instead.
+
+Dedicated browsers are desirable, but they are typically expensive to build. As a result we have no dedicated way to browse the large majority of models around us. This situation needs rectification, and Glamour presents the solution in the form of an engine for building dedicated browsers. In fact, the Inspector and the Moose Finder are written in Glamour.
+
+This chapter describes the details of Glamour. It starts with a short tutorial and then it gradually introduces the architecture and the most important concepts. Glamour has been developed by T. Girba and A. Chis. 
+
+!!! A glimpse of Glamour
+
+How exactly does Glamour help us build dedicated browsers? The rest of this section tries to answer this question via a hands-on example.
+
+Previously, we saw that the ==ArgoUML-0-34== system is comprised of several submodules identified by the presence of a build.xml file in the folder. To get a better handling of these build files, we construct a dedicated browser for them. For example, we can show all modules to the right, and the details related to the build file of each module to the right as shown in Figure *@glamour1*.
+
++Simple build browser.>file://figures/glamour-action-1.png|width=65|label=glamour1+
+
+
+From a conceptual point of view, this browser is composed out of two panes that are connected such that when we select something in the first one, the second pane shows related information.
+
+!!! Building one browser
+
+Let's construct this step by step. Open a Playground and type:
+
+[[[
+GLMCompositePresentation new tabulator 
+	with: [ :t |
+		t column: #index; column: #details.
+		t transmit to: #index; andShow: [ :composite | 
+			composite list 
+				title: 'Projects';
+				format: [:each | each parent basename]] ];
+	openOn: (MooseModel root allModels anyOne rootFolder 
+				asFileReference allFiles select: [ :each | each basename = 'build.xml' ]).
+]]]
+
++A Browser with one list.>file://figures/glamour-action-2.png|width=65|label=glamour2+
+
+
+We build a browser with two panes: ==#index== and ==#details==. When opening the browser, we transmit to the ==#index== pane the input and we show in the pane a list presentation that is entitled =='Projects'==. The list also formats its elements by showing only the basename of the parent directory. We open the overall browser on the list of all build files. One thing to notice here is that we focus primarily on how data flows, and only afterwards on how it is presented.
+
+
+!!! Connecting panes
+Still, nothing happens when selecting an item from our list. That's because we did not connect the two panes. Let's connect them.
+
+[[[
+GLMCompositePresentation new tabulator 
+	with: [ :t |
+		t title: 'Build browser'.
+		t column: #index; column: #details.
+		t transmit to: #index; andShow: [ :composite | 
+			composite list 
+				title: 'Projects';
+				format: [:each | each parent basename] ].
+		t transmit from: #index; to: #details; andShow: [ :composite |
+			composite text
+				title: 'XML';
+				display: [ :file | file contents ] ] ];
+	openOn: (MooseModel root allModels anyOne rootFolder asFileReference
+				allFiles select: [ :each | each basename = 'build.xml' ] )
+]]]
+
++A Browser with two connected panes.>file://figures/glamour-action-3.png|width=65|label=glamour3+
+
+
+!!! Adding more presentations
+We can now also add extra presentations with more details in the second pane.
+
+[[[
+GLMCompositePresentation new tabulator with: [ :t |
+	t column: #index; column: #details.
+	t transmit to: #index; andShow: [ :composite | 
+		composite list
+			title: 'Projects';
+			format: [:each | each parent basename] ].
+	t transmit from: #index; to: #details; andShow: [ :composite |
+		composite text
+			title: 'XML';
+			display: [ :file | file contents ].
+		composite list 
+			title: 'Targets';
+			display: [ :file | (XMLDOMParser parse: file contents) // 'target' ];
+			format: [ :xmlElement | xmlElement attributeAt: 'name' ].
+		composite roassal2
+			title: 'Dependencies';
+			initializeView: [ RTMondrian new ];
+			painting: [ :view :file | 
+				| tags |
+				tags := (XMLDOMParser parse: file) // 'target'.
+				view shape label text: [:each | (each @ 'name') stringValue].
+				view nodes: tags.
+				view shape line color: (Color gray alpha: 0.5).
+				view edges connectFromAll:  [:aTag | |depends|
+					depends:=(aTag @ 'depends') stringValue splitOn: ', '.
+					tags select: [ :each | 
+						depends includes: (each @ 'name') stringValue] ].
+				view layout horizontalDominanceTree.
+				] ].
+	];
+	openOn: (MooseModel root allModels anyOne rootFolder asFileReference
+				allFiles select: [ :each | each basename = 'build.xml' ]).
+]]]
+
+In this case, one of the presentation is another list showing only the ==<target>== tags from the build files, and another presentation is a Roassal visualization showing the dependencies between the ==<target>== tags.
+
++A browser with two connected panes and multiple presentations.>file://figures/glamour-action-4.png|width=65|label=glamour4+
+
+
+
+Not bad so far. Still, why should we see the XML details only for the overall file? Why not see the XML of the tags as well?
+
+Let's transform a bit our browser:
+
+[[[
+GLMCompositePresentation new tabulator with: [ :t |
+	t title: 'Build browser'.
+	t 
+		row: [:r | r column: #index; column: #details];
+		row: #source.
+	t transmit to: #index; andShow: [ :composite | 
+		composite list
+			title: 'Projects';
+			format: [:each | each parent basename] ].
+	t transmit from: #index; to: #details; andShow: [ :composite |
+		composite list 
+			title: 'Targets';
+			display: [ :file | (XMLDOMParser parse: file contents) // 'target' ];
+			format: [ :xmlElement | xmlElement attributeAt: 'name' ].
+		composite roassal2
+			title: 'Dependencies';
+			initializeView: [ RTMondrian new ];
+			painting: [ :view :file | 
+				| tags |
+				tags := (XMLDOMParser parse: file) // 'target'.
+				view shape label text: [:each | (each @ 'name') stringValue].
+				view nodes: tags.
+				view shape line color: (Color gray alpha: 0.5).
+				view edges connectFromAll:  [:aTag | |depends|
+					depends:=(aTag @ 'depends') stringValue splitOn: ', '.
+					tags select: [ :each | 
+						depends includes: (each @ 'name') stringValue] ].
+				view layout horizontalDominanceTree.
+				] ].
+		t transmit from: #index; to: #source; andShow: [ :composite |
+			composite text
+				title: 'XML';
+				display: [ :file | file contents ] ].
+		t transmit from: #details; to: #source; andShow: [ :composite |
+			composite text
+				title: 'XML';
+				display: [ :xmlElement | xmlElement gtDisplayString ] ].
+	];
+	openOn: (MooseModel root allModels anyOne rootFolder asFileReference
+				allFiles select: [ :each | each basename = 'build.xml' ])
+]]]
+
+
++Browser with separate XML preview.>file://figures/glamour-action-5.png|width=65|label=glamour5+
+
+
+That is about it.
+
+In short, in Glamour get five main concepts: a browser (1) is made of panes (2) which represent spatial locations on which various objects (3) are presented (4). Furthermore, the result of acting on the graphical presentation (4) is transmitted (5) to other panes.
+
+
+!!! Glamour architecture
+
+The architecture of Glamour revolves around a handful of concepts. Figure *@glamour6* below shows a UML diagram with an overview of these.
+
++Browser with separate XML preview.>file://figures/glamour-architecture.png|width=65|label=glamour6+
+
+
+
+
+

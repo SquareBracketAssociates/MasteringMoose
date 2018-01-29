@@ -191,7 +191,7 @@ The tree is more appropriate for navigation, but still we are required to scroll
 self // #property
 ]]]
 
-+Using XPath to find elements of interest.>file://figures/nutshell17-playground-files-5|width=65|label=nutshell17+
++Using XPath to find elements of interest.>file://figures/nutshell17-playground-files-5.png|width=65|label=nutshell17+
 
 The result is only a list of 44 ==<property>== tags. Now we can read.
 
@@ -209,7 +209,7 @@ ZnClient new
 	get
 ]]]
 
-+Obtaining the remote source codet.>file://figures/nutshell18-playground-pillar-1|width=65|label=nutshell18+
++Obtaining the remote source codet.>file://figures/nutshell18-playground-pillar-1.png|width=65|label=nutshell18+
 
 Looking at the first code snippet, we notice that it is introduced through a pattern like ==[[[ ... ]]]==. To extract this pattern, we need a parser. Suppose we do not have a parser at hand. It follows that we should build one. But, given that we are not interested at this time in the whole grammar of the markup language, we should be able to extract only the snippet we care about. Switch to the Raw presentation and evaluate:
 
