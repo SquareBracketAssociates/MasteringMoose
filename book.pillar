@@ -6,6 +6,8 @@ ${inputFile:Chapters/02-MooseEngines.pillar}$
 
 ${inputFile:Chapters/03-ImportExport.pillar}$
 
+${inputFile:Chapters/05-Querying.pillar}$
+
 ${inputFile:Chapters/09-Glamour.pillar}$
 
 ${inputFile:Chapters/A-MSE.pillar}$
