@@ -1,0 +1,43 @@
+!! Moose Query
+
+Moose-Query is a domain-specific language to build navigations and scopes queries for entities in Moose. Its authors are Anne Etien and Jean-Christophe Bach, joined later by Vincent Blondeau and Cyril Ferlicot-Delbecque.  It succeeds to Moose-Chef. It is designed to simplify and standardize the way to query Moose models.
+
+This chapter presents Moose-query from three perspectives: user, developer (extender of Moose-Query) and API.
+
+!!! User perspective
+
++A simple model.>file://figures/query-mse-graph.png|width=65|label=query-mse-graph+
+
+An application model in Moose is composed of two concepts as shown in Figure *@query-mse-graph*:
+
+- ""Imbrication of entities."" Defines which entity contains which entities. For example, it defines the classes contained in a package and the methods contained in a class. In the example image, it is the relations "parentPackage", "container", and "parentType". This concept allow to build the containment tree of a model.
+
+- ""Associations between entities."" Specifies how the entities interact with each other. For example, an inheritance is an association between a subclass and its superclass. Another example is that a reference is an association between a behavioural entity and a type. In the example image, it can be the :Inheritance with the "superclass" and "subclass" relations.
+
+MooseQuery allows exploring a model via those two concepts. Then, you can:
+- Explore the containment tree
+- Gather associations
+- Manipulate the gathered associations
+- Change the scope of entities (move from classes to the parent package or the children methods)
+
+In this documentation, we detail the use of the DSL. At the end, you will be able to query your Moose model, for example, to:
+
+- Get the children of an entity (Exploration of the containment tree)
+- Get all the associations contained in a class (Gathering of associations)
+- Get all the entities who depend on a specific entity (Manipulation of the gathered associations)
+- Get all the methods contained in a package in a Java model, including those in inner/anonymous classes (Change of scope)
+
+!!! Containment tree exploration
+
+Navigate the containment tree is the easiest way to query a model. It is possible with the association relations in the model. To do so, there is a really simple API on entities:
+
+|""Selector"" | ""Description""|
+|==children== | Direct children of the entity|
+|==parents== | Direct parents of the entity|
+|==allChildren== | Children of the entity and their children recursively|
+|==allParents== | Parents of the entity and their parents recursively|
+
++A simple model.>file://figures/containmentTreeUser.png|width=65|label=query2+
+
+
+
