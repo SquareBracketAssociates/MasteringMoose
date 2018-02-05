@@ -32,16 +32,16 @@ In this chapter, we detail the use of the DSL. At the end, you will be able to q
 Navigate the containment tree is the easiest way to query a model. It is possible with the association relationsl. To do so, there is a really simple API on entities:
 
 | ""Selector"" | ""Description""|
-| ==children== | Direct children of the entity |
-| ==parents== | Direct parents of the entity |
-| ==allChildren== | Children of the entity and their children recursively |
-| ==allParents== | Parents of the entity and their parents recursively |
+| ==children== | Return the direct children of the entity |
+| ==parents== | Return the direct parents of the entity |
+| ==allChildren== | Return the children of the entity and their children recursively |
+| ==allParents== | Return the parents of the entity and their parents recursively |
 
-+A simple model.>file://figures/containmentTreeUser.png|width=65|label=query2+
++A simple containment model.>file://figures/containmentTreeUser.png|width=65|label=query2+
 
 
 !!! Containment query examples
-For example using the model shown in Figure @*query2@ we can express the following queries with their results
+For example using the model shown in Figure *@query2* we can express the following queries with their results
 
 [[[
 package1 children
@@ -55,12 +55,12 @@ class3 children
 
 [[[
 package1 allChildren
->>> { package2 . class1 . class2 . class3 . attribute1 . attribute2 }
+>>> { package2 . class1 . class2 . class3 . attribut1 . attribut2 }
 ]]]
 
 [[[
 class3 allChildren
->>>{ attribute1 . attribute2 }
+>>>{ attribut1 . attribut2 }
 ]]]
 
 [[[
@@ -101,16 +101,16 @@ These queries are configured with three parameters:
 The main methods to perform navigation queries are:
 
 
-- ==query:with:== This method takes as first parameter a symbol (#out or #in) to define the direction of the query and as second parameter an association class to query. Return: All the instances of this association class where the receiver or its children are the source/target depending on the symbol.|
-- queryAll:  This method takes as parameter a symbol (#out or #in) to define the direction of the query. It takes into account all kind of associations. Return: All the association's instances where the receiver or its children are the source/target depending on the symbol.
-- ==queryLocal:with:==  This method is equivalent to #query:with: but takes into account only the studied entity without its children. It takes as first parameter a symbol (#out or #in) to define the direction of the query and as second parameter an association class to query. Return: All the instances of this association class where the receiver only is the source/target depending on the symbol.
-- ==queryAllLocal:== This method is equivalent to #queryAll: but takes into account only the studied entity without its children. It takes as parameter a symbol (#out or #in) to define the direction of the query. It takes into account all kind of associations. Return: All the association's instances where the receiver only is the source/target depending on the symbol.
+- ==query: direction with: associationClass == This method takes as first parameter a symbol (==#out== or ==#in==) to define the direction of the query and as second parameter an association class to query. Return: All the instances of this association class where the receiver or its children are the source/target depending on the direction.|
+- ==queryAll: direction==  This method takes as parameter a symbol (==#out== or ==#in==) to define the direction of the query. It takes into account all kind of associations. ''Return:'' All the association's instances where the receiver or its children are the source/target depending on the direction.
+- ==queryLocal:direction with: associationClass==  This method is equivalent to ==query:with:== but takes into account only the studied entity without its children. It takes as first parameter a symbol (==#out== or ==#in==) to define the direction of the query and as second parameter an association class to query. ''Return:'' All the instances of this association class where the receiver only is the source/target depending on the symbol.
+- ==queryAllLocal: direction== This method is equivalent to ==queryAll:== but takes into account only the studied entity without its children. It takes as parameter a symbol (==#out== or ==#in==) to define the direction of the query. It takes into account all kind of associations. ''Return:'' All the association's instances where the receiver only is the source/target depending on the symbol.
 
 
-+Example of a small model with associations.>file://figures/query-navigationUser.png|width=65|label=query3+
++Example of a small model with associations.>file://figures/query-navigationUser.png|width=75|label=query3+
 
 !!! Navigation query examples
-For example using the model shown in Figure @*query3@ we can express the following queries with their results
+For example using the model shown in Figure *@query3* we can express the following queries with their results.
 
 [[[
 class1 query: #in with: FAMIXInheritance. 
