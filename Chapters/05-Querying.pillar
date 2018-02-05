@@ -110,57 +110,125 @@ The main methods to perform navigation queries are:
 +Example of a small model with associations.>file://figures/query-navigationUser.png|width=75|label=query3+
 
 !!! Navigation query examples
-For example using the model shown in Figure *@query3* we can express the following queries with their results.
+Using the model shown in Figure *@query3* we can express the following queries with their results.
+
 
 [[[
 class1 query: #in with: FAMIXInheritance. 
 >>> { inheritance1 }
 ]]]
+We get the inheritance1 object whose target is class1.
+
 
 [[[
 class1 query: #out with: FAMIXInheritance. 
 >>> { }
 ]]]
+Since class1 is not the source of any inheritance relation, the query result is empty. 
 
+
+Now a more subtle point showing the interplay between containment and navigation. 
 [[[
 class1 query: #out with: FAMIXAccess. 
 >>> { access1 }. 
 ]]]
-Method1 is contained in Class1 accesses Attribute1 via Access1. The access is not directly done via Class1, but via its children.
+This query returns access1 because even if the class does not explicitly refers to attribute1 via a direct access. One if its method is actually accessing attributes hence the query returns access1. It considers conceptually that the variable (target) link is an outlink of class1. 
+Since method1 is contained (its parentType is class1) in class1 accesses Attribute1 via Access1. The access is not directly done via class1, but via its children.
+
+[[[
+class1 queryLocal: #out with: FAMIXAccess. 
+>>> { }. 
+]]]
+Empty result since  class1 is not directly the source of access1.
 
 [[[
 class1 queryLocal: #in with: FAMIXInheritance. 
 >>> { inheritance1 }
 ]]]
 
-[[[
-class1 queryLocal: #out with: FAMIXAccess. 
->>> { }. 
-]]]
-No result because Class1 is not directly the source of Access1.
 
 [[[
 class1 queryAll: #in. 
 >>> { inheritance1 . reference1 }
 ]]]
-[[[
-class1 queryAll: #out. 
->>> { access1 }
-]]]
 
+What is important to see with the example above is that only the navigation relationships are taken into account. The containment hierarchy is not reported but used when the children of an entity are taken into account - as this is the case for non local queries. 
+
+The next query is simpler to understand. 
 [[[
 class1 queryAllLocal: #in. 
 >>> { inheritance1 . reference1 }
 ]]]
 
+
+
+Here again while class1 does not explicitly act as a source of a relation, since one of its childen (method1) does
+the query takes it into account and fusion the method as it was the class. Therefore it returns the relationship access1. 
+
+[[[
+class1 queryAll: #out. 
+>>> { access1 }
+]]]
+
+In a local set up, class1 does not act as a source of any kind so the query result is empty. 
 [[[
 class1 queryAllLocal: #out. 
 >>> { }
 ]]]
 
+!!! Types of association
+Now we can ask ourselves how to know which entity can be the source or target of which type of association. For this, it exists an API based on the meta-model of your application. These methods have to be sent to an entity class e.g. ==FAMIXClass incomingAssociationTypes==. 
+
+|""Selector""|Description|
+| ==aClass outgoingAssociationTypes== | Return all the possible outgoing association types for this entity. This does not include the outgoing association types of its possible children.
+| ==aClass incomingAssociationTypes== | Return all the possible incoming association types for this entity. This does not include the incoming association types of its possible children.
+| ==aClass allOutgoingAssociationTypes== | Return all the possible outgoing association types for this entity, including the outgoing association types of its possible children.
+| ==aClass allIncomingAssociationTypes== | Return all the possible incoming association types for this entity, including the incoming association types of its possible children.
 
 
+!!!! Association type query examples
 
+[[[
+FAMIXType outgoingAssociationTypes. 
+>>> { FAMIXInheritance }
+]]]
 
+[[[
+FAMIXType incomingAssociationTypes. 
+>>> { FAMIXInheritance . FAMIXTraitUsage . FAMIXReference }
+]]]
 
+[[[
+FAMIXType allOutgoingAssociationTypes. 
+>>> { FAMIXAccess . FAMIXInheritance . FAMIXInvocation . FAMIXReference }
+]]]
 
+[[[
+FAMIXType allIncomingAssociationTypes. 
+>>> { FAMIXAccess . FAMIXInheritance . FAMIXInvocation . FAMIXReference . FAMIXTraitUsage }
+]]]
+
+!!! Query result handling
+
+A navigation query returns a result as a MooseQueryResult. There are three types of query results:
+
+- MooseIncomingQueryResult manages the result of a query on incoming associations.
+- MooseOutgoingQueryResult manages the result of a query on outgoing associations.
+- MooseObjectQueryResult is special kind of query result that can be obtained via the two others ones and includes the opposites of the receiver associations. (For example if you query the outgoing accesses of a class, the opposites of the class associations will be the accessed attributes) SD:???
+
+These query results classes are special collections with some new features.
+
+One of the most useful ones is the ==opposites== message that can be sent to MooseIncomingQueryResult and MooseOutgoingQueryResult. It returns a MooseObjectQueryResult containing all the opposites entities of the query result compared to the receiver of the query.
+
+!!!! Example 
+[[[
+class1 queryAll: #in. 
+>>> { inheritance1 . reference1 }
+]]]
+
+[[[
+(class1 queryAll: #in) opposites. 
+>>> { class2 . method2 }
+]]]
+
+Indeed, when we query a model, it is often not the associations that we want as result but the source/target entities of these associations. For example, if we want the instance variables accessed by a given method, #query:with: will returns the accesses whereas sending the message #opposites on the result returns the variables themselves.
