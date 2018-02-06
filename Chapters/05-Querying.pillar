@@ -6,7 +6,7 @@ This chapter presents MooseQuery from three perspectives: user, developer (exten
 
 !!! User perspective
 
-+A simple model.>file://figures/query-mse-graph.png|width=100|label=query-mse-graph+
++A simple model.>file://figures/simpleModelWithAssociations.pdf|width=100|label=query-mse-graph+
 
 An application model in Moose is composed of two concepts as shown in Figure *@query-mse-graph*:
 
