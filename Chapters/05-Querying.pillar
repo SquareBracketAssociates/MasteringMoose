@@ -6,7 +6,7 @@ This chapter presents MooseQuery from three perspectives: user, developer (exten
 
 !!! User perspective
 
-+A simple model.>file://figures/query-mse-graph.png|width=65|label=query-mse-graph+
++A simple model.>file://figures/query-mse-graph.png|width=100|label=query-mse-graph+
 
 An application model in Moose is composed of two concepts as shown in Figure *@query-mse-graph*:
 
@@ -32,12 +32,12 @@ In this chapter, we detail the use of the DSL. At the end, you will be able to q
 Navigate the containment tree is the easiest way to query a model. It is possible with the association relationsl. To do so, there is a really simple API on entities:
 
 | ""Selector"" | ""Description""|
-| ==children== | Return the direct children of the entity |
-| ==parents== | Return the direct parents of the entity |
-| ==allChildren== | Return the children of the entity and their children recursively |
-| ==allParents== | Return the parents of the entity and their parents recursively |
+| ==children== | Returns the direct children of the entity |
+| ==parents== | Returns the direct parents of the entity |
+| ==allChildren== | Returns the children of the entity and their children recursively |
+| ==allParents== | Returns the parents of the entity and their parents recursively |
 
-+A simple containment model.>file://figures/containmentTreeUser.png|width=65|label=query2+
++A simple containment model.>file://figures/modelWithcontainment.pdf|width=65|label=query2+
 
 
 !!! Containment query examples
@@ -72,10 +72,7 @@ package1 parents
 class3 parents
 >>> { package2 }
 ]]]
-[[[
-class4 parents 
->>> { package3 . namespace1 }
-]]]
+
 [[[
 class3 allParents
 >>> { package2 . package1 }
@@ -93,7 +90,7 @@ To navigate links between entities, MooseQuery provides a generic API to gather 
 These queries are configured with three parameters:
 - The direction of the association (incoming or outgoing). An incoming association represents a relation where the studied entity (receiver of the query) is the target of the relation. An outgoing association represents a relation where the studied entity is the source of the relation.
 - The association(s) that is queried.
-- In addition, a query can be either local or not. A local query searches only in the associations of the receiver while a non-local query also gathers the entity children's associations.
+- In addition, a query can be either local or not (by not we mean that it considers the containment tree to compute the result). A local query searches only in the associations of the receiver while a non-local query also ''takes into account the entity children's associations''.
 
 
 !!! Navigation query API 
@@ -106,84 +103,113 @@ The main methods to perform navigation queries are:
 - ==queryLocal:direction with: associationClass==  This method is equivalent to ==query:with:== but takes into account only the studied entity without its children. It takes as first parameter a symbol (==#out== or ==#in==) to define the direction of the query and as second parameter an association class to query. ''Return:'' All the instances of this association class where the receiver only is the source/target depending on the symbol.
 - ==queryAllLocal: direction== This method is equivalent to ==queryAll:== but takes into account only the studied entity without its children. It takes as parameter a symbol (==#out== or ==#in==) to define the direction of the query. It takes into account all kind of associations. ''Return:'' All the association's instances where the receiver only is the source/target depending on the symbol.
 
+Technical notes: All the associations accept ==source== and ==target== which are redefined depending on the context of the association meaning. For Inheritance ==target== is equivalent to ==superclass== and ==source==  is equivalent to ==subclass== as shown in Figure *@query3*.
 
-+Example of a small model with associations.>file://figures/query-navigationUser.png|width=75|label=query3+
+
++Example of a small model with associations.>file://figures/modelWithAssociations.pdf|width=75|label=query3+
 
 !!! Navigation query examples
 Using the model shown in Figure *@query3* we can express the following queries with their results.
 
 
-[[[
-class1 query: #in with: FAMIXInheritance. 
->>> { inheritance1 }
-]]]
-We get the inheritance1 object whose target is class1.
-
-
-[[[
-class1 query: #out with: FAMIXInheritance. 
->>> { }
-]]]
-Since class1 is not the source of any inheritance relation, the query result is empty. 
-
-
-Now a more subtle point showing the interplay between containment and navigation. 
-[[[
-class1 query: #out with: FAMIXAccess. 
->>> { access1 }. 
-]]]
-This query returns access1 because even if the class does not explicitly refers to attribute1 via a direct access. One if its method is actually accessing attributes hence the query returns access1. It considers conceptually that the variable (target) link is an outlink of class1. 
-Since method1 is contained (its parentType is class1) in class1 accesses Attribute1 via Access1. The access is not directly done via class1, but via its children.
-
-[[[
-class1 queryLocal: #out with: FAMIXAccess. 
->>> { }. 
-]]]
-Empty result since  class1 is not directly the source of access1.
+!!!! Query one: incoming inheritance
 
 [[[
 class1 queryLocal: #in with: FAMIXInheritance. 
 >>> { inheritance1 }
 ]]]
+Explanation: We get the ==inheritance1== object whose target is ==class1==. 
+[[[
+class1 query: #in with: FAMIXInheritance. 
+>>> { inheritance1 }
+]]]
+Explanation: There is no difference between local and containment  since ==class1== does not contain any other target of inheritance relationships.
 
+!!!! Query two: outgoing inheritance
+[[[
+class1 query: #out with: FAMIXInheritance. 
+>>> { }
+]]]
+Explanation: Since ==class1== is not the source of any inheritance relation, the query result is empty. 
+
+!!!! Query three: local outgoing access
+[[[
+class1 queryLocal: #out with: FAMIXAccess. 
+>>> { }. 
+]]]
+Explanation: Empty result since  ==class1== is not directly the source of any access (and in particular ==access1==).
+
+
+!!!! Query four: global outgoing access
+Now a more subtle point showing the interplay between containment and navigation conceptual graphs.
+
+[[[
+class1 query: #out with: FAMIXAccess. 
+>>> { access1 }. 
+]]]
+
+Explanation: 
+This query returns ==access1== because even if the class does not explicitly refers to ==attribute1== via a direct access, one of its children (here ==method1==) is actually accessing ==attribute1== hence the query returns ==access1==. 
+It considers conceptually that the variable (target) link is an outlink of class1.
+
+Note that on Figure *@query3*, MooseQuery does not look at the arrow direction but takes into account the source of the relationship. Here ==method1== is the source of ==access1==, therefore ==class1== is considered as having an out relationship 
+with ==attribute1== via ==access1==.
+
+
+
+!!!! Query five: local all incoming relationships
+
+[[[
+class1 queryAllLocal: #in. 
+>>> { reference1 . inheritance1}
+]]]
+Explanation: ==queryAll*== considers all types of relationships without distinction. ==class1== is the target of two relationships: ==reference1== and ==inheritance1==
+
+
+!!!! Query six: all incoming relationships
 
 [[[
 class1 queryAll: #in. 
 >>> { inheritance1 . reference1 }
 ]]]
 
-What is important to see with the example above is that only the navigation relationships are taken into account. The containment hierarchy is not reported but used when the children of an entity are taken into account - as this is the case for non local queries. 
-
-The next query is simpler to understand. 
-[[[
-class1 queryAllLocal: #in. 
->>> { inheritance1 . reference1 }
-]]]
+Explanation: Here we consider all the contained objects in the containment tree of ==class1==. It means that ==method1==
+will be considered too when checking the target. Now in this query ==method1== is not the target of any relationship and in particular ==access1==. 
 
 
+!!!! Query seven: all incoming relationships
 
-Here again while class1 does not explicitly act as a source of a relation, since one of its childen (method1) does
-the query takes it into account and fusion the method as it was the class. Therefore it returns the relationship access1. 
-
-[[[
-class1 queryAll: #out. 
->>> { access1 }
-]]]
-
-In a local set up, class1 does not act as a source of any kind so the query result is empty. 
 [[[
 class1 queryAllLocal: #out. 
 >>> { }
 ]]]
 
+Explanation: In a local set up, ==class1== does not act as a source of any kind so the query result is empty.
+
+
+[[[
+class1 queryAll: #out. 
+>>> { access1 }
+]]]
+Explanation: When taking into account the children of ==class1==, we get ==method1== and it is the source
+of a navigation relationship here ==access1==. 
+
+
+
+!!!! Step back
+
+What is important to see with the examples above is that only the navigation relationships are taken into account during the filtering based on association types. The containment hierarchy is not reported but used when the children of an entity are taken into account to check source and target of a relationship.
+
+Note that in the example we only use one level of containment (==class1== contains ==method1==) but MooseQuery queries the containment relationship recursively (following allChildren semantics) and as such a package containing ==class1== contains also ==method1==.
+
 !!! Types of association
 Now we can ask ourselves how to know which entity can be the source or target of which type of association. For this, it exists an API based on the meta-model of your application. These methods have to be sent to an entity class e.g. ==FAMIXClass incomingAssociationTypes==. 
 
 |""Selector""|Description|
-| ==aClass outgoingAssociationTypes== | Return all the possible outgoing association types for this entity. This does not include the outgoing association types of its possible children.
-| ==aClass incomingAssociationTypes== | Return all the possible incoming association types for this entity. This does not include the incoming association types of its possible children.
-| ==aClass allOutgoingAssociationTypes== | Return all the possible outgoing association types for this entity, including the outgoing association types of its possible children.
-| ==aClass allIncomingAssociationTypes== | Return all the possible incoming association types for this entity, including the incoming association types of its possible children.
+| ==aCl outgoingAssociationTypes== | Return all the possible outgoing association types for this entity. This does not include the outgoing association types of its possible children.
+| ==aCl incomingAssociationTypes== | Return all the possible incoming association types for this entity. This does not include the incoming association types of its possible children.
+| ==aCl allOutgoingAssociationTypes== | Return all the possible outgoing association types for this entity, including the outgoing association types of its possible children.
+| ==aCl allIncomingAssociationTypes== | Return all the possible incoming association types for this entity, including the incoming association types of its possible children.
 
 
 !!!! Association type query examples
