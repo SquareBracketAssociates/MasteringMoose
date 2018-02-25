@@ -1,4 +1,4 @@
-!! Moose Query
+!! Using Moose Query
 
 Moose-Query is a domain-specific language (DSL) to build navigations and scoped queries for entities in Moose. Its authors are Anne Etien and Jean-Christophe Bach, joined later by Vincent Blondeau and Cyril Ferlicot-Delbecque. It is the successor of Moose-Chef. It is designed to simplify and standardize the way to query Moose models.
 
@@ -325,3 +325,236 @@ Now we can express more complex queries. For example, how can we get all the ext
 ]]]
 
 Since ==withScope:== takes the opposites of the associations by itself, there is no need to call explicitly ==opposite==.
+
+
+!! Deeper understand of Moose Query
+
+
+MooseQuery is the result of the Inria research team RMoD (https://rmod.inria.fr/web/). This page documents the internals of Moose As prerequisites, it supposes the reader has a minimum of knowledge of Fame and Famix. If not, please read the Moose documen (http://themoosebook.org/book/index.html), if you wish to understand everything.
+
+This chapter covers:
+- How to extend a Famix meta-model with new entities/relations queryable via MooseQuery 
+- How the containment tree exploration described in the user documentation works
+- How the navigation query works
+- How the scope query works
+
+The first section will be useful if you wish to extend/create a meta-model. The three next sections only describe how the query  works. It does not require any change from the developers of a meta-model.
+
+!!! Extending a meta model with queriable entities
+
+The content of this section covers the part of new entities/relations creation specific to MooseQuery. It will not cover the creaion of new Moose entities.
+
+First, the developer of the model has to make his new entities/relations queryable with MooseQuery.
+
+!!! Relations definitions
+As said in the user documentation, MooseQuery is based on two concepts:
+- Nesting of entities i.e., which entity contains which entities.
+- Associations between the entities i.e., how the entities interact with each other.
+
++Schema of the relation types.>file://figures/relationTypes.pdf|width=75|label=relationtype+
+
+
+In Figure *@relationtype*, for example, ==anEntity1== is the container of ==anEntity2== and ==anEntity1== is the source of an association whose ==anEntity3== is the target. Moose Query needs to know those relations to work. To declare them you just need to use three pragmas: ==<container>==, ==<source>== and ==<target>==.
+
+!!!! Containment relation definition
+
+The ==<container>== pragma should be put in the contained entity in the method defined to access the container.
+
+At the meta-model level, an entity may have several parents. For example, the container of a class can be a package but also a method in the case of inner class. In that case, both methods ==parentPackage== and ==container== must have the pragma.
+
+[[[
+FAMIXAttribute >> parentType
+	<MSEProperty: #parentType type: #FAMIXType opposite: #attributes>
+	<MSEComment: 'Type declaring the attribute. belongsTo implementation'>
+	<container> 
+	^ parentType
+]]]
+
+
+!!!! Association definition
+The source and target pragmas must be defined in the methods relevant of the association.
+
+
+[[[
+FAMIXAccess >> accessor
+	<MSEProperty: #accessor type: #FAMIXBehaviouralEntity opposite: #accesses>
+	<MSEComment: 'Behavioural entity making the access to the variable. from-side of the association'> 
+	<source> 
+	^ accessor
+]]]
+
+[[[
+FAMIXAccess >> variable
+	<MSEProperty: #variable type: #FAMIXStructuralEntity opposite: #incomingAccesses> 
+	<MSEComment: 'Variable accessed. to-side of the association'>
+	<target>
+	^ variable
+]]]
+
+
+!!! Navigation behavior using traits
+
+Relation definitions (using pragmas) give to MooseQuery all the necessary information for querying the meta-model. Now, new entities need behaviour, i.e., methods, to execute the queries.
+
+To do so, MooseQuery comes with a set of Traits to use new entities.
+
+- ==TAssociationMetaLevelDependency==. By default, this trait is applied on ==FamixAssociation==. This trait includes information about associations needed by the navigation queries. It should to be used by every association of a meta-model.
+
+
+- ==TEntityMetaLevelDependency==. By default this trait is applied on ==FAMIXNamedEntity==. This trait includes information about entities and adds behaviour to explore the ''containment'' tree and execute theirs queries. It should to be used in every entity's hierarchy in a model.
+
+- ==TDependencyQueries==. By default this trait is applied on ==FAMIXNamedEntity==. This trait includes information about entities and adds behaviour to execute ''navigation'' queries. It should to be us every entity's hierarchy in a meta-model.
+
+- ==TOODependencyQueries==. 
+This trait includes  information about object-oriented entities and adds the behaviour to execute navigation queries. It should be used in every entity's hierarchy in a meta-model instead ==TDependencyQueries==.
+
+!!! Caches 
+
+All these traits should to be used when implementing a new meta-model. For performance reasons, Moose Query introduces caches.
+
+Therefore some work is needed when using those traits. Some methods exist in two versions. One private with the real behaviour, and other public that accesses a class in variable or, if nil, sets it with the result of the private method. 
+
+@@show an example
+
+Due to the fact that traits are currently stateless in Pharo, all the methods have to be implemented for your new metaclass using directly the traits and not by inheritance. 
+
+@@todo I did not get it.
+
+For example,
+ ==FAMIXAnnotationInstance== does not inherit from ==FAMIXNamedEntity== but can be queried similarly. The same occurs for new links ==TAssociationMetaLevelDependency== without inheriting from ==FAMIXAssociation==. 
+ 
+ Here is the list of caches to implement:
+
+[[[
+TAssociationMetaLevelDependency class
+   #sourceTypes
+   #targetTypes
+TEntityMetaLevelDependency class
+   #allChildrenTypes
+   #allParentTypes
+   #childrenSelector
+   #parentSelector
+   #allIncomingAssociationTypes
+   #allOutgoingAssociationTypes
+   #incomingMSEProperties
+   #outgoingMSEPreperties
+]]]
+
+
+The following is an example of a cache implementation already defined in MooseQuery.
+The trait defines two methods ==allChildrenTypes== (one trait requirement) and its private counter part ==privateAllChildrenTypes== using the required method.
+
+[[[
+TEntityMetaLevelDependency class >> allChildrenTypes
+	^ self explicitRequirement
+]]]
+
+[[[
+TEntityMetaLevelDependency class >> privateAllChildrenTypes
+	^ (self childrenTypes withDeepCollect: #childrenTypes as: Set) asOrderedCollection
+]]]
+
+Then in the class using the trait, here ==FAMIXNamedEntity==, we implement the following method that caches the execution of the private method.
+
+[[[
+FAMIXNamedEntity class >> allChildrenTypes
+	^ allChildrenTypes ifNil: [ allChildrenTypes := self privateAllChildrenTypes ]
+]]]
+
+
+The model builds caches on classes to speed up queries. It means that during the development of the meta-model it is often required to reset those caches. To reset the caches you can execute:
+
+[[[
+MooseMOdel resetMeta
+]]]
+
+This method will call ==resetMooseQueryCaches== on all subclasses of ==FAMIXEntity==. If you add new caches (in a class that directly uses a trait and not through inheritance like ==FAMIXAnnotationInstance==), you should override in the class side of your class, the method  ==resetMooseQueryCaches== to explicit reset the added caches.
+
+Here is an example of a caches reset method
+
+[[[
+FAMIXNamedEntity class >> resetMooseQueryCaches
+	super resetMooseQueryCaches.
+	childrenSelectors := nil.
+	parentSelectors := nil.
+	allChildrenTypes := nil.
+	allParentTypes := nil.
+	outgoingMSEProperties := nil.
+	incomingMSEProperties := nil
+]]]
+
+
+!!! Containment Tree Exploration
+
+This section and the next ones explain how  MooseQuery's queries work. From this point, no more action is required for the developer to have working queries on its meta-model.
+
+Now that we saw how to define entities that can be queried we focus on explaining the internal mechanisms of MooseQuery. The easiest queries are the ones related to the exploration of the containment tree.
+
+MooseQuery allows querying the children/parents of an entity. This behaviour is based on the meta-model of the application. Each entity possesses a meta-description that lists all the properties of the entity. These properties can be obtained using the message ==allDeclared properties==.
+
+[[[
+MooseEntity class >> allDeclaredProperties
+	"All properties described in the meta-model" 
+	^ self mooseDescription allAttributes
+]]] 
+ 
+[[[
+FAMIXType allDeclaredProperties
+>>> an array of properties
+]]]
+ 
+Each property knows:
+- If it is a property enabling to access the contained entities (via the method ==isChildrenProperty==)
+- If it is a property defining a parent entity (via the method ==isContainer==)
+- The selector returning the property in the entity's API (via the method ==implementingSelector==)
+
+Therefore, based on the meta-model and moose pragmas, it is possible for a Famix class to get the selectors to access its parents or children entities using the ==parentSelectors== and ==childrenSelectors== methods respectively. Here again a cache mechanism is used.
+
+!!!! Getting the parents/children selectors of an entity
+
+Here is an example of the implementation of supporting the navigation of 
+ 
+[[[
+TEntityMetaLevelDependency class >> privateChildrenSelectors
+	^ self allDeclaredProperties 
+		select: #isChildrenProperty 
+		thenCollect: #implementingSelector
+
+FAMIXNamedEntity class >> childrenSelectors
+	^ childrenSelectors ifNil: [ childrenSelectors := self privateChildrenSelectors ]
+]]]
+
+[[[
+TEntityMetaLevelDependency class >> privateParentSelectors
+	^ self allDeclaredProperties 
+		select: #isContainer 
+		thenCollect: #implementingSelector
+
+FAMIXNamedEntity class >> parentSelectors
+	^ parentSelectors ifNil: [ parentSelectors := self privateParentSelectors ]
+]]]
+
+Here is example of use of such messages
+[[[
+FAMIXType parentSelectors. 
+>>> #(#container #parentPackage)
+]]]
+
+[[[
+FAMIXType childrenSelectors. 
+>>> #(#annotationInstances #types #def
+]]]
+
+So, whatever the selector used in the meta-model to access the contained elements of a given entity, it is possible to access them th the children method that dynamically call each selector returned by the ==childrenSelectors== methods. The same is possible to g parents of a given entity. Once we retrieved all parents/children selectors it is possible to perform them on an entity to get their resul gather the children/parents of this entity.
+
+!!!! Getting the parents/children of an entity
+
+[[[
+TEntityMetaLevelDependency >> children
+	| res |
+	res := OrderedCollection new.
+	"Since some selector can return nil, an entity or a collection of entities,
+	 we need to do a nil check and to ensure self childrenSelectors 
+	 do: [ :accessor | (self perform: accessor) ifNotNil: [ :r | res addAll: r asCollection ] ]. 
+	^ res asSet
+]]]
