@@ -10,26 +10,26 @@ This chapter presents MooseQuery from three perspectives: user, developer (exten
 
 An application model in Moose is composed of two concepts as shown in Figure *@query-mse-graph*:
 
-- ""Imbrication of entities."" Defines which entity contains which entities. For example, it defines that classes are contained in a package and that methods are contained in a class. In Figure *@query-mse-graph*, relations ''parentPackage'', ''container'', and ''parentType'' express such a concept. This concept allows one to represent the containment tree of a model.
+- ""Nesting of entities."" Defines which entity contains which entities. For example, it defines that classes are contained in a package and that methods are contained in a class. In Figure *@query-mse-graph*, relations ''parentPackage'', ''container'', and ''parentType'' express such a concept. This concept allows one to represent the containment tree of a model.
 
 - ""Associations between entities."" Specify how the entities interact with each other. For example, an inheritance is an association between a subclass and its superclass. Another example is that a reference is an association between a behavioural entity and a type. In Figure *@query-mse-graph*, the object '':Inheritance'' with the ''superclass'' and ''subclass'' relations represents such concept.
 
 MooseQuery allows exploring a model via those two concepts. You can:
-- Explore the containment tree
-- Gather associations
-- Manipulate the gathered associations
-- Change the scope of entities (move from classes to their parent package or their children methods)
+- Explore the containment tree,
+- Gather associations,
+- Manipulate the gathered associations, and
+- Change the scope of entities (move from classes to their parent package or their children methods).
 
 In this chapter, we detail the use of the DSL. At the end, you will be able to query your Moose model, for example, to:
 
-- Get the children of an entity (Exploration of the containment tree)
-- Get all the associations contained in a class (Gathering of associations)
-- Get all the entities who depend on a specific entity (Manipulation of the gathered associations)
-- Get all the methods contained in a package in a Java model, including those in inner/anonymous classes (Change of scope)
+- Get the children of an entity (Exploration of the containment tree),
+- Get all the associations contained in a class (Gathering of associations),
+- Get all the entities who depend on a specific entity (Manipulation of the gathered associations), and 
+- Get all the methods contained in a package in a Java model, including those in inner/anonymous classes (Change of scope).
 
 !!! Containment tree query API 
 
-Navigate the containment tree is the easiest way to query a model. It is possible with the association relationsl. To do so, there is a really simple API on entities:
+Navigate the containment tree is the easiest way to query a model. It is possible with the association relations. To do so, there is a really simple API on entities:
 
 | ""Selector"" | ""Description""|
 | ==children== | Returns the direct children of the entity |
@@ -98,12 +98,12 @@ These queries are configured with three parameters:
 The main methods to perform navigation queries are:
 
 
-- ==query: direction with: associationClass == This method takes as first parameter a symbol (==#out== or ==#in==) to define the direction of the query and as second parameter an association class to query. Return: All the instances of this association class where the receiver or its children are the source/target depending on the direction.|
+- ==query: direction with: associationClass == This method takes as first parameter a symbol (==#out== or ==#in==) to define the direction of the query and as second parameter an association class to query. ''Return:'' All the instances of this association class where the receiver or its children are the source/target depending on the direction.|
 - ==queryAll: direction==  This method takes as parameter a symbol (==#out== or ==#in==) to define the direction of the query. It takes into account all kind of associations. ''Return:'' All the association's instances where the receiver or its children are the source/target depending on the direction.
 - ==queryLocal:direction with: associationClass==  This method is equivalent to ==query:with:== but takes into account only the studied entity without its children. It takes as first parameter a symbol (==#out== or ==#in==) to define the direction of the query and as second parameter an association class to query. ''Return:'' All the instances of this association class where the receiver only is the source/target depending on the symbol.
 - ==queryAllLocal: direction== This method is equivalent to ==queryAll:== but takes into account only the studied entity without its children. It takes as parameter a symbol (==#out== or ==#in==) to define the direction of the query. It takes into account all kind of associations. ''Return:'' All the association's instances where the receiver only is the source/target depending on the symbol.
 
-Technical notes: All the associations accept ==source== and ==target== which are redefined depending on the context of the association meaning. For Inheritance ==target== is equivalent to ==superclass== and ==source==  is equivalent to ==subclass== as shown in Figure *@query3*.
+Technical note: All the associations accept ==source== and ==target== which are redefined depending on the context of the association meaning. For Inheritance ==target== is equivalent to ==superclass== and ==source==  is equivalent to ==subclass== as shown in Figure *@query3*.
 
 
 +Example of a small model with associations.>file://figures/modelWithAssociations.pdf|width=75|label=query3+
@@ -206,10 +206,10 @@ Note that in the example we only use one level of containment (==class1== contai
 Now we can ask ourselves how to know which entity can be the source or target of which type of association. For this, it exists an API based on the meta-model of your application. These methods have to be sent to an entity class e.g. ==FAMIXClass incomingAssociationTypes==. 
 
 |""Selector""|Description|
-| ==aCl outgoingAssociationTypes== | Return all the possible outgoing association types for this entity. This does not include the outgoing association types of its possible children.
-| ==aCl incomingAssociationTypes== | Return all the possible incoming association types for this entity. This does not include the incoming association types of its possible children.
-| ==aCl allOutgoingAssociationTypes== | Return all the possible outgoing association types for this entity, including the outgoing association types of its possible children.
-| ==aCl allIncomingAssociationTypes== | Return all the possible incoming association types for this entity, including the incoming association types of its possible children.
+| ==aCl outgoingAssociationTypes==|Return all the possible outgoing association types for this entity. This does not include the outgoing association types of its possible children.
+| ==aCl incomingAssociationTypes==|Return all the possible incoming association types for this entity. This does not include the incoming association types of its possible children.
+| ==aCl allOutgoingAssociationTypes==|Return all the possible outgoing association types for this entity, including the outgoing association types of its possible children.
+| ==aCl allIncomingAssociationTypes==|Return all the possible incoming association types for this entity, including the incoming association types of its possible children.
 
 
 !!!! Association type query examples
@@ -236,11 +236,11 @@ FAMIXType allIncomingAssociationTypes.
 
 !!! Query result handling
 
-A navigation query returns a result as a MooseQueryResult. There are three types of query results:
+A navigation query returns a result as an instance of ==MooseQueryResult==. There are three types of query results:
 
 - MooseIncomingQueryResult manages the result of a query on incoming associations.
 - MooseOutgoingQueryResult manages the result of a query on outgoing associations.
-- MooseObjectQueryResult is special kind of query result that can be obtained via the two others ones and includes the opposites of the receiver associations. (For example if you query the outgoing accesses of a class, the opposites of the class associations will be the accessed attributes) SD:???
+- MooseObjectQueryResult is special kind of query result that can be obtained via the two others ones and includes the opposites of the receiver associations. (For example if you query the outgoing accesses of a class, the opposites of the class associations will be the accessed attributes)
 
 These query results classes are special collections with some new features.
 
@@ -257,4 +257,71 @@ class1 queryAll: #in.
 >>> { class2 . method2 }
 ]]]
 
-Indeed, when we query a model, it is often not the associations that we want as result but the source/target entities of these associations. For example, if we want the instance variables accessed by a given method, #query:with: will returns the accesses whereas sending the message #opposites on the result returns the variables themselves.
+Indeed, when we query a model, it is often not the associations that we want as result but the source/target entities of these associations. For example, if we want the instance variables accessed by a given method, ==query:with:== will returns the accesses whereas sending the message ==opposites== on the result returns the variables themselves.
+
+Another possibility is to exclude all the results where the opposite is included in the receiver of the original query. This can be done with the message ==withoutSelfLoop==. It is handy when we want to query a model to find external dependencies without internal ones.
+
+@@todo We need an example of withoutSelfLoop
+
+Another feature is to be able to change the scope of the result. This feature is covered in the next section.
+
+!!! Scoping Queries
+
+Depending on the analysis we perform, it might be relevant to handle queries at a different scope. For example, if we want to know associations between a given class and all the other classes of the project, whatever the type of associations. The associations be classes can only be inheritance. But two classes are also linked if a method of one of them invoked a method of the other. It is necessary to consider invocations at the scope of the class whereas they occur between some of their methods. Exactly the same occur for the other types of associations.
+
+For this scenario, it is possible to use scope queries. A scope query can be applied to:
+- A moose entity or
+- A MooseQueryResult obtained through a navigation query.
+
+A scope query has a direction to look for. You can look for entities higher, lower or both higher and lower than the receiver containment tree. 
+
+- ==atScope:==  Return all the entities at this given famix class scope that are up in the containment of the meta-model.
+- ==toScope:== Return all the entities at this given famix class scope that are down in the contain tree of the meta-model.
+- ==withScope:== Return all the entities at this given famix class scope that are both up and down i containment tree of the meta-model. 
+
+The argument of the query should be a FamixClass. It defines the scope of the query as shown below.
+
++A containment tree.>file://figures/modelWithContainment2.pdf|width=75|label=containment2+
+
+For example, taking the model present in Figure *@containment2* the following queries illustrates the different possibilities. 
+
+[[[
+package2 atScope: FAMIXPackage
+>>> { package1 }
+]]]
+
+[[[
+package2 toScope: FAMIXPackage
+>>> { }
+]]]
+
+[[[
+package2 withScope: FAMIXPackage
+>>> { package1 }
+]]]
+
+[[[
+method1 atScope: FAMIXType
+>>> { class3 }
+]]]
+
+[[[
+method1 toScope: FAMIXType
+>>> { class4 }
+]]]
+
+
+[[[
+method2 withScope: FAMIXType
+>>> { class3 . class4 }
+]]]
+
+!!!! Query example
+
+Now we can express more complex queries. For example, how can we get all the external entities a class depend on at the method level. 
+
+[[[
+(aClass query: #out) withoutSelfLoop withScope: FAMIXMethod
+]]]
+
+Since ==withScope:== takes the opposites of the associations by itself, there is no need to call explicitly ==opposite==.
