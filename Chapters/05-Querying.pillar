@@ -508,7 +508,7 @@ Each property knows:
 - If it is a property defining a parent entity (via the method ==isContainer==)
 - The selector returning the property in the entity's API (via the method ==implementingSelector==)
 
-Therefore, based on the meta-model and moose pragmas, it is possible for a Famix class to get the selectors to access its parents or children entities using the ==parentSelectors== and ==childrenSelectors== methods respectively. Here again a cache mechanism is used.
+Therefore, based on the meta-model and moose pragmas, it is possible for a Famix class to get the ''selectors'' (the name of the messages to be sent) to access its parents or children entities using the ==parentSelectors== and ==childrenSelectors== methods respectively. Here again a cache mechanism is used.
 
 !!!! Getting the parents/children selectors of an entity
 
@@ -554,7 +554,116 @@ TEntityMetaLevelDependency >> children
 	| res |
 	res := OrderedCollection new.
 	"Since some selector can return nil, an entity or a collection of entities,
-	 we need to do a nil check and to ensure self childrenSelectors 
-	 do: [ :accessor | (self perform: accessor) ifNotNil: [ :r | res addAll: r asCollection ] ]. 
+	we need to do a nil check and to ensure self childrenSelectors"
+	self childrenSelectors 
+		do: [ :accessor | (self perform: accessor) 
+								ifNotNil: [ :r | res addAll: r asCollection ] ].
 	^ res asSet
 ]]]
+
+[[[
+TEntityMetaLevelDependency >> parents
+	| res |
+	res := OrderedCollection new.
+	"Since some selector can return nil, an entity or a 
+	collection of entities, we need to do a nil check and to ensure 
+	self parentSelectors 
+		do: [ :accessor | (self perform: accessor) 
+								ifNotNil: [ :r | res addAll: r asCollection ] ].
+	^ res asSet
+]]]
+
+These methods are the ones that were used in the user chapter. 
+
+[[[
+package1 children.
+>>> { package2 . class1 }
+class3 children.
+>>> { attribute1 . attribute2 }
+package1 parents.
+>>> #()
+class3 parents.
+>>> { package2 }
+class4 parents.
+>>> { package3 . namespace1 }
+]]]
+
+
+There is no risk to forget a selector, it is dynamically computed from the meta-model.
+
+!!!! Getting the parents/children of an entity recursively
+
+Similarly, it is possible to get children/parents recursively. Since containment trees can be pretty big, we use an accumulator to avoid creating too many collections.
+
+[[[
+TEntityMetaLevelDependency >> allChildren
+	"Returns all the children and sub-children of an entity, 
+	i.e my children and those of my children, and those of the 
+	^ self addAllChildrenIn: OrderedCollection new
+]]]
+[[[
+TEntityMetaLevelDependency >> addAllChildrenIn: aCollection 
+	aCollection addAll: self children.
+	self children do: [ :each | each addAllChildrenIn: aCollection ]. 
+	^ aCollection
+]]]
+
+Again these methods were the ones used in the previous examples:
+
+[[[
+package1 allChildren. 
+>>> { package2 . class1 . class2 . class3 . attribute1 . attribute2 }
+class3 allChildren. 
+>>> { attribute1 . attribute2 }
+class3 allParents. 
+>>> { package2 . package1 }
+attribute1 allParents. 
+>>> { class3 . package2 . package1 }
+]]]
+
+
+
+!!! Navigation Queries
+
+This section  explains how the navigation queries works.
+
+Navigation queries, as explained in the user documentation, are parametrized by:
+- The direction of the query. Should the receiver be the source or the target of the associations to gather? 
+- The scope of the query. Should the query deal with the receiver or deal with the receiver and its children.
+-  The association(s) to query. It is possible to query a specific association or all the associations.
+All those parameters will be explained in this section.
+
+To launch a navigation query, all Moose entities can use an API provided by the trait ==TDependencyQueries==, as explained previously. methods all begin in the same way. They send the request to a new instance of ==MooseQueryCalculator== parametrized with the direct XXX of the query.
+
+!!!! Query direction
+
+This section explains the query direction management.
+
++MooseQuery navigation queries.>file://figures/strategy.pdf|width=75|label=strategy+
+
+
+As shown in Figure *@strategy* above, directions are managed via a strategy. A ==MooseQueryCalculator== refers to a st XXX that will be either a ==MooseQueryIncomingDirectionStrategy== or a ==MooseQueryOutgoingDirectionStrategy==. The strategies manages everything related to the direction of the query. This includes:
+- Obtaining the possible association types for a given entity depending on the direction,
+- Obtaining the meta-properties of an entity defining a relation of source/target between the entity and an association, and 
+- Creating a ==MooseQueryResult== for the right direction
+
+
+!!!! Example of responsibility dispatch
+The following illustrates the dispatch used based on the strategies. 
+
+[[[
+MooseQueryAbstractDirectionStrategy class >> associationTypesFor: anEntity 
+	^ self subclassResponsibility
+]]]
+[[[
+MooseQueryIncomingDirectionStrategy class >> associationTypesFor: anEntity 
+	^ anEntity incomingAssociationTypes
+]]]
+[[[
+MooseQueryOutgoingDirectionStrategy class >> associationTypesFor: anEntity 
+	^ anEntity outgoingAssociationTypes
+]]]
+
+The ==MooseQueryAbstractDirectionStrategy== returns the corresponding strategy associated with the ==#in== and ==#out== symbol. 
+
+
